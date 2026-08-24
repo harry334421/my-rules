@@ -2,7 +2,6 @@
   # ==================== 直连 DIRECT ====================
   - DOMAIN-SUFFIX,2go2.top,DIRECT
   - DOMAIN-SUFFIX,adblockplus.dev,DIRECT
-  - DOMAIN-SUFFIX,adgard.net,DIRECT
   - DOMAIN-SUFFIX,asus.com,DIRECT
   - DOMAIN-SUFFIX,diplnk.com,DIRECT
   - DOMAIN-SUFFIX,wdpsmc.cn,DIRECT
@@ -26,4 +25,7 @@
   # ==================== 兜底规则（务必放最后） ====================
   # IPv6 全部直连：必须放在所有域名规则之后，
   # 否则会先于上面的 Adobe 屏蔽规则匹配，导致 IPv6 走直连绕过屏蔽
-  - IP-CIDR6,::/0,DIRECT
+  - IP-CIDR6,240e::/16,DIRECT      # 电信 IPv6
+  - IP-CIDR6,2408::/16,DIRECT      # 联通
+  - IP-CIDR6,2409::/16,DIRECT      # 移动
+
