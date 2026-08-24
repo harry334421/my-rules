@@ -28,7 +28,7 @@
   - IP-CIDR6,2409::/16,DIRECT      # 移动
 
 # ============ 顶层：开启 IPv6 出站（解决 wdpsmc.cn 连接根因） ============
-+ipv6: true
+ipv6: true
 
 dns:
   nameserver:                 # ← 不带 +，整体替换成你的阿里 DNS
@@ -39,6 +39,6 @@ dns:
   default-nameserver:        
     - 61.139.2.69
     - 218.6.200.139
-  +fake-ip-filter:            # 增量
+  +fake-ip-filter:           
     - "wdpsmc.cn"
     - "*.wdpsmc.cn"
