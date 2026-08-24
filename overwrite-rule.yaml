@@ -35,8 +35,8 @@ dns:
     - https://dns.alidns.com/dns-query
     - tls://dns.alidns.com
     - 223.5.5.5
-  +ipv6: true                 # 增量
-  +default-nameserver:        # 增量
+  ipv6: true                 
+  default-nameserver:        
     - 61.139.2.69
     - 218.6.200.139
   +fake-ip-filter:            # 增量
