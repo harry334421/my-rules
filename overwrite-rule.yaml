@@ -8,7 +8,6 @@
   - DOMAIN-SUFFIX,adobe.io, REJECT
   - DOMAIN-SUFFIX,adobe.com, REJECT
   - DOMAIN-SUFFIX,tly.bet, REJECT
-  - DOMAIN-SUFFIX,bing.com,选择节点
   - DOMAIN-SUFFIX,asus.com, DIRECT
   - DOMAIN-SUFFIX,2go2.top, DIRECT
   - DOMAIN-SUFFIX,adblockplus.dev, DIRECT
