@@ -1,5 +1,5 @@
 +rules:
-  # ==================== 直连 DIRECT ====================
+  # ============ 直连 DIRECT ============
   - DOMAIN-SUFFIX,2go2.top,DIRECT
   - DOMAIN-SUFFIX,adblockplus.dev,DIRECT
   - DOMAIN-SUFFIX,asus.com,DIRECT
@@ -10,22 +10,35 @@
   - PROCESS-NAME,QQ.exe,DIRECT
   - PROCESS-NAME,TeamSpeak.exe,DIRECT
 
-  # ==================== 屏蔽 REJECT ====================
-  # Adobe 全家桶（原文件 90+ 条重复域名 → 合并为 4 条 suffix）
+  # ============ 屏蔽 REJECT ============
+  # Adobe 全家桶（合并为 4 条 suffix）
   - DOMAIN-SUFFIX,adobe.com,REJECT
   - DOMAIN-SUFFIX,adobe.io,REJECT
   - DOMAIN-SUFFIX,adobelogin.com,REJECT
   - DOMAIN-SUFFIX,adobegenuine.com,REJECT
-  # 兜底：取消注释可拦截所有含 "adobe" 字样的域名（会覆盖上面 4 条 suffix）
+  # 兜底：取消注释可拦截所有含 adobe 的域名（会覆盖上面 4 条）
   # - DOMAIN-KEYWORD,adobe,REJECT
   - DOMAIN-SUFFIX,tly.bet,REJECT
   # 指定程序屏蔽
   - PROCESS-NAME,Photoshop.exe,REJECT
 
-  # ==================== 兜底规则（务必放最后） ====================
-  # IPv6 全部直连：必须放在所有域名规则之后，
-  # 否则会先于上面的 Adobe 屏蔽规则匹配，导致 IPv6 走直连绕过屏蔽
+  # ============ 兜底规则（务必放最后） ============
   - IP-CIDR6,240e::/16,DIRECT      # 电信 IPv6
   - IP-CIDR6,2408::/16,DIRECT      # 联通
   - IP-CIDR6,2409::/16,DIRECT      # 移动
 
+ipv6: true
+
+dns:
+  enable: true
+  ipv6: true
+  default-nameserver:
+    - 61.139.2.69        # 你运营商默认 DNS（纯 IP，引导解析用）
+    - 218.6.200.139
+  nameserver:
+    - https://dns.alidns.com/dns-query
+    - tls://dns.alidns.com
+    - 223.5.5.5
+  fake-ip-filter:
+    - "wdpsmc.cn"
+    - "*.wdpsmc.cn"
