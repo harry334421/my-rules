@@ -27,7 +27,6 @@
   - IP-CIDR6,2408::/16,DIRECT      # 联通
   - IP-CIDR6,2409::/16,DIRECT      # 移动
 
-# ============ 顶层：开启 IPv6 出站（解决 wdpsmc.cn 连接根因） ============
 ipv6: true
 
 dns:
