@@ -27,8 +27,6 @@
   - IP-CIDR6,2408::/16,DIRECT      # 联通
   - IP-CIDR6,2409::/16,DIRECT      # 移动
 
-ipv6: true
-
 dns:
   # ---- 整体替换（不带 +）----
   nameserver:                  # 整体替换成你的阿里 DNS，确保返回 AAAA
