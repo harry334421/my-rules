@@ -27,18 +27,18 @@
   - IP-CIDR6,2408::/16,DIRECT      # 联通
   - IP-CIDR6,2409::/16,DIRECT      # 移动
 
-ipv6: true
+# ============ 顶层：开启 IPv6 出站（解决 wdpsmc.cn 连接根因） ============
++ipv6: true
 
 dns:
-  enable: true
-  ipv6: true
-  default-nameserver:
-    - 61.139.2.69        # 你运营商默认 DNS（纯 IP，引导解析用）
-    - 218.6.200.139
-  nameserver:
+  nameserver:                 # ← 不带 +，整体替换成你的阿里 DNS
     - https://dns.alidns.com/dns-query
     - tls://dns.alidns.com
     - 223.5.5.5
-  fake-ip-filter:
+  +ipv6: true                 # 增量
+  +default-nameserver:        # 增量
+    - 61.139.2.69
+    - 218.6.200.139
+  +fake-ip-filter:            # 增量
     - "wdpsmc.cn"
     - "*.wdpsmc.cn"
