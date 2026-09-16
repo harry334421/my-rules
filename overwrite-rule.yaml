@@ -29,18 +29,38 @@
   - IP-CIDR6,2409::/16,DIRECT      # 移动
 
 dns:
-  # ---- 整体替换（不带 +）----
-  nameserver:                  # 整体替换成你的阿里 DNS，确保返回 AAAA
+# ---- 整体替换（不带 + 就是替换）----
+  nameserver:
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
     - tls://dot.pub:853
     - 223.5.5.5
-  default-nameserver:          # 运营商 DNS 引导解析 DoH 主机名（必须纯 IP）
+  default-nameserver:
     - 223.5.5.5
     - 119.29.29.29
+  fallback:                        # 只留实测可达的两条
+    - tcp://208.67.222.222
+    - tcp://8.26.56.2
     - 61.139.2.69
     - 218.6.200.139
-  # ---- 增量（唯一带 + 的字段）----
-  +fake-ip-filter:             # 在原有基础上追加：让 wdpsmc.cn 走真实 IP 而非 fake-ip
+  nameserver-policy:               # 顶掉订阅转换塞的 15 条 Cloudflare DoH（本机直连不通）
+    +.google.com: https://doh.pub/dns-query
+    +.googleapis.com: https://doh.pub/dns-query
+    +.googleapis.cn: https://doh.pub/dns-query
+    +.googlevideo.com: https://doh.pub/dns-query
+    +.gstatic.com: https://doh.pub/dns-query
+    +.youtube.com: https://doh.pub/dns-query
+    +.youtu.be: https://doh.pub/dns-query
+    +.facebook.com: https://doh.pub/dns-query
+    +.twitter.com: https://doh.pub/dns-query
+    +.x.com: https://doh.pub/dns-query
+    +.github.com: https://doh.pub/dns-query
+    +.githubusercontent.com: https://doh.pub/dns-query
+    +.openai.com: https://doh.pub/dns-query
+    +.chatgpt.com: https://doh.pub/dns-query
+    +.anthropic.com: https://doh.pub/dns-query
+  # prefer-h3: false               # 可选：不想让 DoH 走 QUIC 就打开
+  # ---- 增量（带 + 才是追加）----
+  +fake-ip-filter:
     - "wdpsmc.cn"
     - "*.wdpsmc.cn"
