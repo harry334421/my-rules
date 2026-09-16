@@ -6,6 +6,7 @@
   - DOMAIN-SUFFIX,diplnk.com,DIRECT
   - DOMAIN-SUFFIX,wdpsmc.cn,DIRECT
   - DOMAIN-SUFFIX,wenku8.net,DIRECT
+  - DOMAIN-SUFFIX,wenku8.com,DIRECT
   # 指定程序直连
   - PROCESS-NAME,QQ.exe,DIRECT
   - PROCESS-NAME,TeamSpeak.exe,DIRECT
