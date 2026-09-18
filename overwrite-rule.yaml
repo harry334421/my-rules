@@ -22,7 +22,6 @@
   - DOMAIN-SUFFIX,tly.bet,REJECT
   # 指定程序屏蔽
   - PROCESS-NAME,Photoshop.exe,REJECT
-
   # ============ 兜底规则（务必放最后） ============
   - IP-CIDR6,240e::/16,DIRECT      # 电信 IPv6
   - IP-CIDR6,2408::/16,DIRECT      # 联通
