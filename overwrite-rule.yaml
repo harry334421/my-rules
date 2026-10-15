@@ -7,6 +7,8 @@
   - DOMAIN-SUFFIX,wdpsmc.cn,DIRECT
   - DOMAIN-SUFFIX,wenku8.net,DIRECT
   - DOMAIN-SUFFIX,wenku8.com,DIRECT
+  - DOMAIN-SUFFIX,pximg.net,DIRECT
+  - DOMAIN-SUFFIX,pixiv.net,DIRECT
   # 指定程序直连
   - PROCESS-NAME,QQ.exe,DIRECT
   - PROCESS-NAME,TeamSpeak.exe,DIRECT
@@ -44,9 +46,10 @@ dns:
   fallback:                        # 只留实测可达的两条
     - tcp://208.67.222.222
     - tcp://8.26.56.2
-    - 61.139.2.69
-    - 218.6.200.139
+  #  - 61.139.2.69
+  #  - 218.6.200.139
   nameserver-policy:               # 顶掉订阅转换塞的 15 条 Cloudflare DoH（本机直连不通）
+    +.pximg.net: https://doh.pub/dns-query
     +.google.com: https://doh.pub/dns-query
     +.googleapis.com: https://doh.pub/dns-query
     +.googleapis.cn: https://doh.pub/dns-query
