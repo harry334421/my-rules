@@ -8,6 +8,7 @@
   - DOMAIN-SUFFIX,wenku8.net,DIRECT
   - DOMAIN-SUFFIX,wenku8.com,DIRECT
   # 指定程序直连
+  - DOMAIN-SUFFIX,pximg.net,DIRECT
   - PROCESS-NAME,QQ.exe,DIRECT
   - PROCESS-NAME,TeamSpeak.exe,DIRECT
 
@@ -40,11 +41,6 @@ dns:
     - 223.5.5.5
   # fallback: 整段删除 ← 这帖的核心结论
   nameserver-policy:
-    "geosite:geolocation-!cn":
-      - https://1.1.1.1/dns-query
-      - https://8.8.8.8/dns-query        # 留一个备用，同样是字面 IP
-    +.pximg.net:
-      - https://1.1.1.1/dns-query
     +.google.com: https://doh.pub/dns-query
     +.googleapis.com: https://doh.pub/dns-query
     +.googleapis.cn: https://doh.pub/dns-query
