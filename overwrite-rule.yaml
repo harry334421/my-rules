@@ -7,8 +7,6 @@
   - DOMAIN-SUFFIX,wdpsmc.cn,DIRECT
   - DOMAIN-SUFFIX,wenku8.net,DIRECT
   - DOMAIN-SUFFIX,wenku8.com,DIRECT
-  - DOMAIN-SUFFIX,pximg.net,DIRECT
-  - DOMAIN-SUFFIX,pixiv.net,DIRECT
   # 指定程序直连
   - PROCESS-NAME,QQ.exe,DIRECT
   - PROCESS-NAME,TeamSpeak.exe,DIRECT
