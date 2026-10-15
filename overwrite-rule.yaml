@@ -40,8 +40,11 @@ dns:
     - 223.5.5.5
   # fallback: 整段删除 ← 这帖的核心结论
   nameserver-policy:
-    "geosite:geolocation-!cn": https://dns.google/dns-query   # 海外域名
-    +.pximg.net: https://dns.google/dns-query                 # 你的痛点
+    "geosite:geolocation-!cn":
+      - https://1.1.1.1/dns-query
+      - https://8.8.8.8/dns-query        # 留一个备用，同样是字面 IP
+    +.pximg.net:
+      - https://1.1.1.1/dns-query
     +.google.com: https://doh.pub/dns-query
     +.googleapis.com: https://doh.pub/dns-query
     +.googleapis.cn: https://doh.pub/dns-query
