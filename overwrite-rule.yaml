@@ -42,8 +42,6 @@ dns:
   nameserver-policy:
     "geosite:geolocation-!cn": https://dns.google/dns-query   # 海外域名
     +.pximg.net: https://dns.google/dns-query                 # 你的痛点
-  nameserver-policy:               # 顶掉订阅转换塞的 15 条 Cloudflare DoH（本机直连不通）
-    +.pximg.net: https://doh.pub/dns-query
     +.google.com: https://doh.pub/dns-query
     +.googleapis.com: https://doh.pub/dns-query
     +.googleapis.cn: https://doh.pub/dns-query
