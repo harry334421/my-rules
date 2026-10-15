@@ -32,20 +32,16 @@
   - IP-CIDR6,2409::/16,DIRECT      # 移动
 
 dns:
-# ---- 整体替换（不带 + 就是替换）----
-  nameserver:
+  nameserver:                       # 境内：本地 DNS
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
-    - tls://dot.pub:853
+  proxy-server-nameserver:          # 节点域名自身解析，别用 fallback
+    - https://doh.pub/dns-query
     - 223.5.5.5
-  default-nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
-  fallback:                        # 只留实测可达的两条
-    - tcp://208.67.222.222
-    - tcp://8.26.56.2
-  #  - 61.139.2.69
-  #  - 218.6.200.139
+  # fallback: 整段删除 ← 这帖的核心结论
+  nameserver-policy:
+    "geosite:geolocation-!cn": https://dns.google/dns-query   # 海外域名
+    +.pximg.net: https://dns.google/dns-query                 # 你的痛点
   nameserver-policy:               # 顶掉订阅转换塞的 15 条 Cloudflare DoH（本机直连不通）
     +.pximg.net: https://doh.pub/dns-query
     +.google.com: https://doh.pub/dns-query
