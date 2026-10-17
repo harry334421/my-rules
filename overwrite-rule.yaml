@@ -1,3 +1,16 @@
++proxy-groups:
+  # pximg 专用自愈组：探测 URL 直指 i.pximg.net。
+  # 不能用「自动选择」——它按通用 URL 测速，会漂到被 pximg CDN 拉黑的口岸（日本/新加坡）。
+  - name: pximg
+    type: url-test
+    url: https://i.pximg.net/
+    interval: 300
+    tolerance: 100
+    proxies:
+      - 🇹🇼台湾
+      - 🇭🇰香港家宽专线
+      - 🇭🇰香港HKBN
+      - 🇭🇰香港HKBN2
 +rules:
   # ============ 直连 DIRECT ============
   - DOMAIN-SUFFIX,2go2.top,DIRECT
@@ -7,7 +20,8 @@
   - DOMAIN-SUFFIX,wdpsmc.cn,DIRECT
   - DOMAIN-SUFFIX,wenku8.net,DIRECT
   - DOMAIN-SUFFIX,wenku8.com,DIRECT
-  - DOMAIN-SUFFIX,pximg.net,一分机场
+  # pixiv/fanbox 图片域，走上面的 pximg 组
+  - DOMAIN-SUFFIX,pximg.net,pximg
 
   # ============ 屏蔽 REJECT ============
   # Adobe 全家桶
