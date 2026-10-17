@@ -7,39 +7,82 @@
   - DOMAIN-SUFFIX,wdpsmc.cn,DIRECT
   - DOMAIN-SUFFIX,wenku8.net,DIRECT
   - DOMAIN-SUFFIX,wenku8.com,DIRECT
-  # 指定程序直连
   - DOMAIN-SUFFIX,pximg.net,DIRECT
-  - PROCESS-NAME,QQ.exe,DIRECT
-  - PROCESS-NAME,TeamSpeak.exe,DIRECT
 
   # ============ 屏蔽 REJECT ============
-  # Adobe 全家桶（合并为 4 条 suffix）
+  # Adobe 全家桶
   - DOMAIN-SUFFIX,adobe.com,REJECT
   - DOMAIN-SUFFIX,adobe.io,REJECT
   - DOMAIN-SUFFIX,adobelogin.com,REJECT
   - DOMAIN-SUFFIX,adobegenuine.com,REJECT
-  # 兜底：取消注释可拦截所有含 adobe 的域名（会覆盖上面 4 条）
-  # - DOMAIN-KEYWORD,adobe,REJECT
   - DOMAIN-SUFFIX,tly.bet,REJECT
-  # 指定程序屏蔽
-  - PROCESS-NAME,Photoshop.exe,REJECT
+  # 广告域名
   - DOMAIN-SUFFIX,doubleclick.net,REJECT
   - DOMAIN-SUFFIX,smartadserver.com,REJECT
   - DOMAIN-SUFFIX,equativ.com,REJECT
   - DOMAIN-SUFFIX,casalemedia.com,REJECT
-  # ============ 兜底规则（务必放最后） ============
-  - IP-CIDR6,240e::/16,DIRECT      # 电信 IPv6
-  - IP-CIDR6,2408::/16,DIRECT      # 联通
-  - IP-CIDR6,2409::/16,DIRECT      # 移动
+
+  # ============ PCDN（防偷跑上行）============
+  # 通用 CDN
+  - DOMAIN-SUFFIX,bsccdn.net,REJECT
+  - DOMAIN-SUFFIX,gjfzpt.cn,REJECT
+  - DOMAIN-SUFFIX,jomodns.cn,REJECT
+  - DOMAIN-SUFFIX,kuiniuca.com,REJECT
+  - DOMAIN-SUFFIX,pkoplink.com,REJECT
+  - DOMAIN-SUFFIX,saxysec.com,REJECT
+  - DOMAIN-SUFFIX,szbdyd.com,REJECT
+  - DOMAIN-SUFFIX,uhabo.com,REJECT
+  - DOMAIN-SUFFIX,xycdn.com,REJECT
+  # 视频平台
+  - DOMAIN-SUFFIX,mcdn.bilivideo.cn,REJECT
+  - DOMAIN-SUFFIX,onethingpcs.com,REJECT
+  - DOMAIN-SUFFIX,pcdn.xmcdn.com,REJECT
+  - DOMAIN-SUFFIX,tpa-hcdn.iqiyi.com,REJECT
+  # P2P 节点发现
+  - DOMAIN-SUFFIX,p2p.huya.com,REJECT
+  - DOMAIN-SUFFIX,p2p.qq.com,REJECT
+  - DOMAIN-SUFFIX,p2ptun.qq.com,REJECT
+  - DOMAIN-SUFFIX,p2pupdate.gamedl.qq.com,REJECT
+  - DOMAIN-SUFFIX,p2pupgrade.gamedl.qq.com,REJECT
+  - DOMAIN-SUFFIX,pcdn.yximgs.com,REJECT
+  - DOMAIN-SUFFIX,stun.hitv.com,REJECT
+  # 斗鱼
+  - DOMAIN-SUFFIX,stun.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,stun1.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,dyp2p-ali.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,dyp2p-hw.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2p-ali.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2pchunk-hw.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2pchunk-table.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2pchunk-ws.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2perrorlog.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2plive-ali.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2plive-ws.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2plog.douyucdn.cn,REJECT
+  - DOMAIN-SUFFIX,p2pvod-ws.douyucdn.cn,REJECT
+
+  # 注：PROCESS-NAME 只匹配路由器自身进程。
+  # QQ.exe / TeamSpeak.exe / Photoshop.exe 跑在局域网 PC 上，
+  # 旁路由的 Clash 看不到这些进程名，写了也不会命中。
+  # - PROCESS-NAME,QQ.exe,DIRECT
+  # - PROCESS-NAME,TeamSpeak.exe,DIRECT
+  # - PROCESS-NAME,Photoshop.exe,REJECT
+
+  # ============ 兜底规则（务必放最后）============
+  - IP-CIDR6,240e::/16,DIRECT
+  - IP-CIDR6,2408::/16,DIRECT
+  - IP-CIDR6,2409::/16,DIRECT
 
 dns:
-  nameserver:                       # 境内：本地 DNS
+  nameserver:
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
-  proxy-server-nameserver:          # 节点域名自身解析，别用 fallback
+  proxy-server-nameserver:
     - https://doh.pub/dns-query
     - 223.5.5.5
-  # fallback: 整段删除 ← 这帖的核心结论
+  # 删掉插件默认写入的 fallback / fallback-filter（值为空即整键删除）
+  fallback-:
+  # nameserver-policy 是哈希递归合并，只补新增项，已有条目不会被覆盖
   nameserver-policy:
     +.google.com: https://doh.pub/dns-query
     +.googleapis.com: https://doh.pub/dns-query
@@ -56,8 +99,6 @@ dns:
     +.openai.com: https://doh.pub/dns-query
     +.chatgpt.com: https://doh.pub/dns-query
     +.anthropic.com: https://doh.pub/dns-query
-  # prefer-h3: false               # 可选：不想让 DoH 走 QUIC 就打开
-  # ---- 增量（带 + 才是追加）----
+  # 必须带 + 前缀：不带会整体替换 fake-ip-filter，清掉插件内置的 140 多条
   +fake-ip-filter:
-    - "wdpsmc.cn"
-    - "*.wdpsmc.cn"
+    - +.wdpsmc.cn
