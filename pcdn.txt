@@ -1,0 +1,47 @@
+! Title: PCDN 域名黑名单（防偷跑上行）
+! Description: 屏蔽常见 PCDN / P2P 节点发现域名，避免设备被当作上传节点占用上行带宽
+! Homepage: https://github.com/harry334421/my-rules
+! Updated: 2026-10-18
+! 格式: AdGuard Home 过滤规则语法，||domain^ 同时匹配该域名及其全部子域
+! 同步: 与 OpenClash custom-rules-dns 的 REJECT 区、FlClash 的 myRules 保持一致
+
+! ============ 通用 CDN ============
+||bsccdn.net^
+||gjfzpt.cn^
+||jomodns.cn^
+||kuiniuca.com^
+||pkoplink.com^
+||saxysec.com^
+||szbdyd.com^
+||uhabo.com^
+||xycdn.com^
+
+! ============ 视频平台 ============
+||mcdn.bilivideo.cn^
+||onethingpcs.com^
+||pcdn.xmcdn.com^
+||tpa-hcdn.iqiyi.com^
+
+! ============ P2P 节点发现 ============
+||p2p.huya.com^
+||p2p.qq.com^
+||p2ptun.qq.com^
+||p2pupdate.gamedl.qq.com^
+||p2pupgrade.gamedl.qq.com^
+||pcdn.yximgs.com^
+||stun.hitv.com^
+
+! ============ 斗鱼 ============
+||stun.douyucdn.cn^
+||stun1.douyucdn.cn^
+||dyp2p-ali.douyucdn.cn^
+||dyp2p-hw.douyucdn.cn^
+||p2p-ali.douyucdn.cn^
+||p2pchunk-hw.douyucdn.cn^
+||p2pchunk-table.douyucdn.cn^
+||p2pchunk-ws.douyucdn.cn^
+||p2perrorlog.douyucdn.cn^
+||p2plive-ali.douyucdn.cn^
+||p2plive-ws.douyucdn.cn^
+||p2plog.douyucdn.cn^
+||p2pvod-ws.douyucdn.cn^
