@@ -1,26 +1,93 @@
-// FlClash / Clash Party 通用覆写脚本：入口 main(config)
+// ============================================================================
+// FlClash 覆写脚本（合并版）：powerfullz 订阅转换 + 本人规则/DNS 定制
+// ----------------------------------------------------------------------------
+// 结构：
+//   1) MY_ARGS      —— 喂给 powerfullz 脚本的参数（FlClash 没有 Sub-Store 的
+//                      $arguments，所以这里自己注入 globalThis.$arguments）
+//   2) 第 1 段：powerfullz convert.min.js 原样内联（不再联网）
+//   3) 第 2 段：本人规则插到前面 + DNS / ipv6 定制
+//   4) main(config) —— FlClash 的唯一入口
+//
+// 优先级（本脚本 = 你的原覆写脚本，永远压过 powerfullz）：
+//   1) powerfullz convert.min.js 先转换，生成整套配置（策略组/规则/DNS）
+//   2) 我的 19 条规则整块插到最前 —— mihomo 自上而下匹配，所以我的规则优先
+//   3) 我的 DNS / ipv6 / 内核项最后覆盖同名字段 —— 赋值在 powerfullz 之后，后者覆盖前者
+//   注意：覆盖只作用于「标量同名字段」。powerfullz 的 dns.fallback 是数组，
+//         我这里是追加语义（不是替换），所以最终 fallback 是「它的 + 我的」。
+//   布尔/字符串类冲突（ipv6 / tcp-concurrent / find-process-mode / enhanced-mode 等）
+//   一律以本文件为准。
+// ============================================================================
+
+// ---------- 1) 传给 powerfullz 脚本的参数 ----------
+// 对应 convert.min.js 文档里的：grouptype / ipv6 / tun / keepalive / fakeip
+// / quic / threshold / regex / full
+var MY_ARGS = {
+  grouptype: 1, // 0=select 手动选择，1=url-test 自动测速，2=load-balance
+  ipv6: false,
+  tun: false,
+  fakeip: true,
+  quic: false,
+  threshold: 2,
+  regex: false,
+  full: false
+};
+
+// ---------- 2) 把参数塞进全局，供 powerfullz 脚本读取 ----------
+globalThis.$arguments = MY_ARGS;
+
+// ============================================================================
+// 以下为 https://cdn.jsdelivr.net/gh/powerfullz/override-rules/convert.min.js
+// 原样内联（2026-10 抓取，21595 字节）。改动它会导致后续合并失效。
+// ============================================================================
+/*! powerfullz 的 Substore 订阅转换脚本 https://github.com/powerfullz/override-rules */
+/*!
+powerfullz 的 Substore 订阅转换脚本
+https://github.com/powerfullz/override-rules
+
+支持的传入参数：
+- grouptype: 地区代理组类型（0=select 手动选择, 1=url-test 自动测速, 2=load-balance 负载均衡，默认 0）
+  - 向后兼容：若未传 grouptype 但传了 loadbalance，则 loadbalance=true 映射为 grouptype=2，loadbalance=false 映射为 grouptype=1
+- landing: auto-detected from nodes with `dialer-proxy` field; no user parameter needed
+- ipv6: 启用 IPv6 支持（默认 false）
+- tun: 启用 TUN 模式（默认 false）
+- full: 输出完整配置（适合纯内核启动，默认 false）
+- keepalive: 启用 tcp-keep-alive（默认 false）
+- fakeip: DNS 使用 FakeIP 模式（默认 true；传 false 时为 RedirHost）
+- quic: 允许 QUIC 流量（UDP 443，默认 false）
+- threshold: 地区节点数量小于该值时不显示分组 (默认 0)
+- regex: 使用正则过滤模式（include-all + filter）写入各地区代理组，而非直接枚举节点名称（默认 false）
+
+源码已迁移至 `src/*.ts`。
+*/
+"use strict";(()=>{var p=(e,t,n)=>()=>{if(n)throw n[0];try{return e&&(t=e(e=0)),t}catch(i){throw n=[i],i}};var pe=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(n){throw t=0,n}};function g(e,t=!1){return typeof e>"u"?t:typeof e=="boolean"?e:typeof e=="string"?e.toLowerCase()==="true"||e==="1":!1}function G(e,t=0){if(e===null||typeof e>"u")return t;let n=parseInt(String(e),10);return Number.isNaN(n)?t:n}function S(...e){return e.flat().filter(Boolean)}function D(e){return{source:e,regex:new RegExp(e,"i"),pattern:`(?i)${e}`}}function u(e){return e!==null}var f=p(()=>{"use strict"});var N,r,x,L,o,E,I=p(()=>{"use strict";f();N="节点",r="https://cdn.jsdelivr.net",x="https://cp.cloudflare.com",L=D(String.raw`0\.[0-5]|低倍率|省流|实验性`),o={SELECT:"选择代理",MANUAL:"手动选择",AUTO:"自动选择",FALLBACK:"故障转移",LANDING:"落地节点",LOW_COST:"低倍率节点",FRONT_PROXY:"前置代理",STATIC_RESOURCES:"静态资源",AI_SERVICE:"AI服务",CRYPTO:"加密货币",FINANCE:"金融服务",APPLE:"苹果服务",GOOGLE:"谷歌服务",MICROSOFT:"微软服务",BILIBILI:"哔哩哔哩",BAHAMUT:"巴哈姆特",XBOX:"Xbox",TAILSCALE:"Tailscale",GITHUB:"Github",YOUTUBE:"Youtube",NETFLIX:"Netflix",TIKTOK:"TikTok",SPOTIFY:"Spotify",EHENTAI:"E-Hentai",TELEGRAM:"Telegram",TRUTH_SOCIAL:"Truth Social",TWITTER:"Twitter",TWITCH:"Twitch",WEIBO:"新浪微博",PIKPAK:"PikPak网盘",SOGOU_INPUT:"搜狗输入法",AD_BLOCK:"广告拦截",GLOBAL:"GLOBAL",FINAL:"Final"},E={香港:{weight:10,pattern:"香港|港|\\b(?:HK|hk)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Hong Kong|HongKong|hongkong|HONG KONG|HONGKONG|深港|HKG|九龙|Kowloon|新界|沙田|荃湾|葵涌|🇭🇰",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong.png`},澳门:{pattern:"澳门|\\b(?:MO|mo)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Macau|🇲🇴",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Macao.png`},台湾:{weight:20,pattern:"台|新北|彰化|\\b(?:TW|tw)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Taiwan|TAIWAN|TWN|TPE|ROC|🇹🇼|🇼🇸",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Taiwan.png`},新加坡:{weight:30,pattern:"新加坡|坡|狮城|\\b(?:SG|sg)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Singapore|SINGAPORE|SIN|🇸🇬",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Singapore.png`},日本:{weight:40,pattern:"日本|川日|东京|大阪|泉日|埼玉|沪日|深日|\\b(?:JP|jp)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Japan|JAPAN|JPN|NRT|HND|KIX|TYO|OSA|关西|Kansai|KANSAI|🇯🇵",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Japan.png`},韩国:{weight:45,pattern:"韩国|韩|韓|春川|Chuncheon|首尔|\\b(?:KR|kr)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Korea|KOREA|KOR|ICN|🇰🇷",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Korea.png`},美国:{weight:50,pattern:"美国|美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|纽约|亚特兰大|迈阿密|华盛顿|\\b(?:US|us)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|United States|UnitedStates|UNITED STATES|USA|America|AMERICA|JFK|EWR|IAD|ATL|ORD|MIA|NYC|LAX|SFO|SEA|DFW|SJC|🇺🇸",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/United_States.png`,excludePattern:"美属|亚美尼亚|圣多美|普林西比"},加拿大:{weight:55,pattern:"加拿大|渥太华|温哥华|卡尔加里|蒙特利尔|Montreal|\\b(?:CA|ca)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Canada|CANADA|CAN|YVR|YYZ|YUL|🇨🇦",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Canada.png`},英国:{weight:60,pattern:"英国|伦敦|曼彻斯特|Manchester|\\b(?:UK|uk)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Britain|United Kingdom|UNITED KINGDOM|England|GBR|LHR|MAN|🇬🇧",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/United_Kingdom.png`},澳大利亚:{pattern:"澳洲|澳大利亚|\\b(?:AU|au)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Australia|🇦🇺",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Australia.png`},德国:{weight:70,pattern:"德国|德|柏林|法兰克福|慕尼黑|Munich|\\b(?:DE|de)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Germany|GERMANY|DEU|MUC|🇩🇪",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Germany.png`,excludePattern:"瓜德罗普"},法国:{weight:80,pattern:"法国|法|巴黎|马赛|Marseille|\\b(?:FR|fr)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|France|FRANCE|FRA|CDG|MRS|🇫🇷",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/France.png`,excludePattern:"法属|布基纳法索|法罗"},俄罗斯:{pattern:"俄罗斯|俄|\\b(?:RU|ru)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Russia|🇷🇺",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Russia.png`,excludePattern:"埃塞俄比亚|白俄罗斯"},泰国:{pattern:"泰国|泰|\\b(?:TH|th)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Thailand|🇹🇭",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Thailand.png`,excludePattern:"巴泰"},印度:{pattern:"印度|\\b(?:IN|in)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|India|🇮🇳",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/India.png`,excludePattern:"印度洋"},马来西亚:{pattern:"马来西亚|马来|\\b(?:MY|my)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Malaysia|🇲🇾",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Malaysia.png`},阿根廷:{pattern:"阿根廷|布宜诺斯艾利斯|\\b(?:AR|ar)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Argentina|EZE|🇦🇷",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Argentina.png`},芬兰:{pattern:"芬兰|赫尔辛基|\\b(?:FI|fi)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Finland|HEL|🇫🇮",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Finland.png`},埃及:{pattern:"埃及|开罗|\\b(?:EG|eg)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Egypt|CAI|🇪🇬",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Egypt.png`},菲律宾:{pattern:"菲律宾|马尼拉|\\b(?:PH|ph)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Philippines|MNL|🇵🇭",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Philippines.png`},土耳其:{pattern:"土耳其|伊斯坦布尔|\\b(?:TR|tr)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Turkey|Türkiye|IST|🇹🇷",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Turkey.png`},乌克兰:{pattern:"乌克兰|基辅|\\b(?:UA|ua)(?:[-_ ]?\\d+(?:[-_ ]?[A-Za-z]{2,})?)?\\b|Ukraine|KBP|🇺🇦",icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Ukraine.png`}}});function ue(e){if(g(e.loadbalance))return 2;let t=G(e.grouptype,1);return t===0||t===1||t===2?t:1}function K(e){return{groupType:ue(e),ipv6Enabled:g(e.ipv6),fullConfig:g(e.full),keepAliveEnabled:g(e.keepalive),fakeIPEnabled:g(e.fakeip,!0),quicEnabled:g(e.quic),regexFilter:g(e.regex),tunEnabled:g(e.tun),countryThreshold:G(e.threshold,2)}}var U=p(()=>{"use strict";f()});function v({name:e,icon:t,groupType:n,nodeSource:i}){switch(n){case 0:return{name:e,icon:t,type:"select",...i};case 1:return{name:e,icon:t,type:"url-test",url:x,interval:60,tolerance:20,...i};case 2:return{name:e,icon:t,type:"load-balance",strategy:"sticky-sessions",url:x,interval:60,tolerance:20,...i}}}function w({allNodes:e,regexFilter:t,groupType:n,countryNames:i,countryNodes:s,lowCostNodes:l,tailscaleNodes:c,landing:C,landingNodes:h,defaultProxies:a,defaultProxiesDirect:T,defaultSelector:y,defaultFallback:d,frontProxySelector:_}){let R=i.includes("台湾"),A=i.includes("香港"),$=i.includes("美国"),P=c.length>0;return[{name:o.SELECT,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Proxy.png`,type:"select",proxies:y},{name:o.MANUAL,icon:`${r}/gh/shindgewongxj/WHATSINStash@master/icon/select.png`,type:"select",proxies:e},C?{name:o.FRONT_PROXY,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Area.png`,type:"select",proxies:_}:null,C?{name:o.LANDING,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Airport.png`,type:"select",proxies:h.map(m=>m.name).filter(u)}:null,{name:o.STATIC_RESOURCES,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Cloudflare.png`,type:"select",proxies:a},{name:o.AI_SERVICE,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png`,type:"select",proxies:a},{name:o.CRYPTO,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Cryptocurrency_1.png`,type:"select",proxies:a},{name:o.FINANCE,icon:`${r}/gh/powerfullz/override-rules@master/icons/Nasdaq.png`,type:"select",proxies:T},{name:o.APPLE,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Apple_2.png`,type:"select",proxies:a},{name:o.GOOGLE,icon:`${r}/gh/Orz-3/mini@master/Color/Google.png`,type:"select",proxies:a},{name:o.MICROSOFT,icon:`${r}/gh/powerfullz/override-rules@master/icons/Microsoft_Copilot.png`,type:"select",proxies:a},{name:o.XBOX,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Xbox.png`,type:"select",proxies:a},{name:o.GITHUB,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/GitHub.png`,type:"select",proxies:a},{name:o.BILIBILI,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/bilibili.png`,type:"select",proxies:R&&A?["DIRECT","台湾节点","香港节点"]:T},{name:o.BAHAMUT,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Bahamut.png`,type:"select",proxies:R?["台湾节点",o.SELECT,o.MANUAL,"DIRECT"]:a},{name:o.YOUTUBE,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/YouTube.png`,type:"select",proxies:a},{name:o.TWITCH,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Twitch.png`,type:"select",proxies:a},{name:o.NETFLIX,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Netflix.png`,type:"select",proxies:a},{name:o.TIKTOK,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/TikTok.png`,type:"select",proxies:a},{name:o.SPOTIFY,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Spotify.png`,type:"select",proxies:a},{name:o.TELEGRAM,icon:`${r}/gh/powerfullz/override-rules@master/icons/Telegram.png`,type:"select",proxies:a},{name:o.TWITTER,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Twitter.png`,type:"select",proxies:a},{name:o.WEIBO,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Weibo.png`,type:"select","include-all":!0,proxies:T},{name:o.TRUTH_SOCIAL,icon:`${r}/gh/powerfullz/override-rules@master/icons/Truth_Social.png`,type:"select",proxies:$?["美国节点",o.SELECT,o.MANUAL]:a},{name:o.EHENTAI,icon:`${r}/gh/powerfullz/override-rules@master/icons/Ehentai.png`,type:"select",proxies:a},{name:o.PIKPAK,icon:`${r}/gh/powerfullz/override-rules@master/icons/PikPak.png`,type:"select",proxies:a},{name:o.SOGOU_INPUT,icon:`${r}/gh/powerfullz/override-rules@master/icons/Sougou.png`,type:"select",proxies:["DIRECT","REJECT"]},P?{name:o.TAILSCALE,icon:`${r}/gh/powerfullz/override-rules@master/icons/Tailscale.png`,type:"select",proxies:c.map(m=>m.name).filter(u)}:null,{name:o.AD_BLOCK,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/AdBlack.png`,type:"select",proxies:["REJECT","REJECT-DROP","DIRECT"]},{name:o.FINAL,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Final.png`,type:"select",proxies:[o.SELECT,"DIRECT"]},{name:o.AUTO,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Auto.png`,type:"url-test",url:x,proxies:d,interval:60,tolerance:20},{name:o.FALLBACK,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Available_1.png`,type:"fallback",url:x,proxies:d,interval:60,tolerance:20},l.length>0||t?v({name:o.LOW_COST,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Lab.png`,groupType:n,nodeSource:t?{"include-all":!0,filter:L.pattern}:{proxies:l.map(m=>m.name).filter(u)}}):null,...i.map(m=>{let b=E[m];if(!b)return null;let le=t?{"include-all":!0,filter:b.pattern,...b.excludePattern?{"exclude-filter":b.excludePattern}:{}}:{proxies:s[m]?.map(ce=>ce.name).filter(u)};return v({name:`${m}${N}`,icon:b.icon,groupType:n,nodeSource:le})})].filter(u)}var k=p(()=>{"use strict";I();f()});function F(e){return(e||[]).filter(t=>t.type==="tailscale"||!1)}function B(e){return(e||[]).filter(t=>L.regex.test(t.name||""))}function M(e){let t=[],n=[];for(let i of e||[])i.name&&(i["dialer-proxy"]==="前置代理"?t.push(i):n.push(i));return{landingNodes:t,nonLandingNodes:n}}function Q(e){let t=Object.create(null);for(let n of e){let i=n.name||"";for(let[s,l]of Object.entries(me))if(l.test(i)&&!ge[s]?.test(i)){t[s]||(t[s]=[]),t[s].push(n);break}}return t}function H(e,t){let n=Object.entries(e).filter(([,i])=>i.length>=t);return n.sort(([i],[s])=>{let l=E[i]?.weight??1/0,c=E[s]?.weight??1/0;return l-c}),n.map(([i])=>i)}var me,ge,z=p(()=>{"use strict";I();me=Object.fromEntries(Object.entries(E).map(([e,t])=>[e,new RegExp(t.pattern.replace(/^\(\?i\)/,""))])),ge=Object.fromEntries(Object.entries(E).filter(([,e])=>e.excludePattern).map(([e,t])=>[e,new RegExp(t.excludePattern)]))});function q({quicEnabled:e},t){return[e?null:"AND,((DST-PORT,443),(NETWORK,UDP)),REJECT",t?`IP-CIDR,100.64.0.0/10,${o.TAILSCALE},no-resolve`:null,t?`IP-CIDR,fd7a:115c:a1e0::/48,${o.TAILSCALE},no-resolve`:null,t?`DOMAIN-SUFFIX,ts.net,${o.TAILSCALE}`:null,"GEOIP,private,DIRECT,no-resolve",`RULE-SET,ADBlock,${o.AD_BLOCK}`,`RULE-SET,AdditionalFilter,${o.AD_BLOCK}`,`RULE-SET,SogouInput,${o.SOGOU_INPUT}`,`DOMAIN-SUFFIX,truthsocial.com,${o.TRUTH_SOCIAL}`,`RULE-SET,StaticResources,${o.STATIC_RESOURCES}`,`RULE-SET,CDNResources,${o.STATIC_RESOURCES}`,`RULE-SET,AdditionalCDNResources,${o.STATIC_RESOURCES}`,`GEOSITE,category-cryptocurrency,${o.CRYPTO}`,`GEOSITE,category-finance,${o.FINANCE}`,`GEOSITE,category-ai-!cn,${o.AI_SERVICE}`,`GEOSITE,bilibili,${o.BILIBILI}`,`GEOSITE,youtube,${o.YOUTUBE}`,`GEOSITE,telegram,${o.TELEGRAM}`,`GEOIP,telegram,${o.TELEGRAM},no-resolve`,`GEOSITE,xbox,${o.XBOX}`,`GEOSITE,github,${o.GITHUB}`,`GEOSITE,netflix,${o.NETFLIX}`,`GEOSITE,twitch,${o.TWITCH}`,`GEOIP,netflix,${o.NETFLIX},no-resolve`,`GEOSITE,spotify,${o.SPOTIFY}`,`GEOSITE,bahamut,${o.BAHAMUT}`,`GEOSITE,pikpak,${o.PIKPAK}`,`GEOSITE,twitter,${o.TWITTER}`,`RULE-SET,Weibo,${o.WEIBO}`,`RULE-SET,EHentai,${o.EHENTAI}`,`RULE-SET,TikTok,${o.TIKTOK}`,"RULE-SET,SteamFix,DIRECT","RULE-SET,GoogleFCM,DIRECT","GEOSITE,google-play@cn,DIRECT","GEOSITE,microsoft@cn,DIRECT",`GEOSITE,apple,${o.APPLE}`,`GEOSITE,microsoft,${o.MICROSOFT}`,`GEOSITE,google,${o.GOOGLE}`,`RULE-SET,GFWList,${o.SELECT}`,"GEOIP,cn,DIRECT",`MATCH,${o.FINAL}`].filter(u)}var W=p(()=>{"use strict";I();f()});var X,Y=p(()=>{"use strict";I();X={ADBlock:{type:"http",behavior:"domain",format:"yaml",interval:86400,url:`${r}/gh/217heidai/adblockfilters@main/rules/adblockmihomolite.yaml`,path:"./ruleset/ADBlock.yaml"},SogouInput:{type:"http",behavior:"classical",format:"text",interval:86400,url:"https://ruleset.skk.moe/Clash/non_ip/sogouinput.txt",path:"./ruleset/SogouInput.txt"},StaticResources:{type:"http",behavior:"domain",format:"text",interval:86400,url:"https://ruleset.skk.moe/Clash/domainset/cdn.txt",path:"./ruleset/StaticResources.txt"},CDNResources:{type:"http",behavior:"classical",format:"text",interval:86400,url:"https://ruleset.skk.moe/Clash/non_ip/cdn.txt",path:"./ruleset/CDNResources.txt"},TikTok:{type:"http",behavior:"classical",format:"text",interval:86400,url:`${r}/gh/powerfullz/override-rules@master/ruleset/TikTok.list`,path:"./ruleset/TikTok.list"},EHentai:{type:"http",behavior:"classical",format:"text",interval:86400,url:`${r}/gh/powerfullz/override-rules@master/ruleset/EHentai.list`,path:"./ruleset/EHentai.list"},SteamFix:{type:"http",behavior:"classical",format:"text",interval:86400,url:`${r}/gh/powerfullz/override-rules@master/ruleset/SteamFix.list`,path:"./ruleset/SteamFix.list"},GoogleFCM:{type:"http",behavior:"classical",format:"text",interval:86400,url:`${r}/gh/powerfullz/override-rules@master/ruleset/FirebaseCloudMessaging.list`,path:"./ruleset/FirebaseCloudMessaging.list"},AdditionalFilter:{type:"http",behavior:"classical",format:"text",interval:86400,url:`${r}/gh/powerfullz/override-rules@master/ruleset/AdditionalFilter.list`,path:"./ruleset/AdditionalFilter.list"},AdditionalCDNResources:{type:"http",behavior:"classical",format:"text",interval:86400,url:`${r}/gh/powerfullz/override-rules@master/ruleset/AdditionalCDNResources.list`,path:"./ruleset/AdditionalCDNResources.list"},Weibo:{type:"http",behavior:"classical",format:"text",interval:86400,url:`${r}/gh/powerfullz/override-rules@master/ruleset/Weibo.list`,path:"./ruleset/Weibo.list"},GFWList:{type:"http",behavior:"domain",format:"yaml",interval:86400,url:"https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt",path:"./ruleset/GFWList.yaml"}}});function J(e){return typeof e=="object"&&e!==null&&!Array.isArray(e)}function V(e){return Array.isArray(e)&&e.every(t=>typeof t=="string")?e:void 0}function fe(e,t){let n=V(t);if(!(!e&&!n))return[...new Set([...e??[],...n??[]])]}function Ee(e,t){if(!J(t))return e;let n={};for(let[i,s]of Object.entries(t))(typeof s=="string"||V(s))&&(n[i]=s);return{...e??{},...n}}function Ie(e,t){if(!J(t))return e;let n={...e};for(let s of Te){let l=Ee(n[s],t[s]);l&&(n[s]=l)}let i=fe(n["fake-ip-filter"],t["fake-ip-filter"]);return i&&(n["fake-ip-filter"]=i),n}function Z({mode:e,ipv6Enabled:t,fakeIpFilter:n}){let i={enable:!0,ipv6:t,"prefer-h3":!0,"enhanced-mode":e,nameserver:["system","223.5.5.5","119.29.29.29","180.184.1.1"],fallback:["quic://dns0.eu","https://dns.cloudflare.com/dns-query","https://dns.sb/dns-query","tcp://208.67.222.222","tcp://8.26.56.2"]};return n&&(i["fake-ip-filter"]=n),i}function ee({fakeIPEnabled:e,ipv6Enabled:t,upstreamDns:n}){let i=Z(e?{mode:"fake-ip",ipv6Enabled:t,fakeIpFilter:de}:{mode:"redir-host",ipv6Enabled:t});return Ie(i,n)}var de,j,Te,oe=p(()=>{"use strict";de=["geosite:connectivity-check","Mijia Cloud","dig.io.mi.com","localhost.ptlogin2.qq.com","*.icloud.com","*.stun.*.*","*.stun.*.*.*","*.lan","*.localdomain","*.example","*.invalid","*.localhost","*.test","*.local","*.home.arpa","time.*.com","time.*.gov","time.*.edu.cn","time.*.apple.com","time1.*.com","time2.*.com","time3.*.com","time4.*.com","time5.*.com","time6.*.com","time7.*.com","ntp.*.com","ntp1.*.com","ntp2.*.com","ntp3.*.com","ntp4.*.com","ntp5.*.com","ntp6.*.com","ntp7.*.com","*.time.edu.cn","*.ntp.org.cn","+.pool.ntp.org","time1.cloud.tencent.com","stun.*.*","stun.*.*.*","swscan.apple.com","mesu.apple.com","music.163.com","*.music.163.com","*.126.net","musicapi.taihe.com","music.taihe.com","songsearch.kugou.com","trackercdn.kugou.com","*.kuwo.cn","api-jooxtt.sanook.com","api.joox.com","y.qq.com","*.y.qq.com","streamoc.music.tc.qq.com","mobileoc.music.tc.qq.com","isure.stream.qqmusic.qq.com","dl.stream.qqmusic.qq.com","aqqmusic.tc.qq.com","amobile.music.tc.qq.com","localhost.ptlogin2.qq.com","*.msftconnecttest.com","*.msftncsi.com","*.xiami.com","*.music.migu.cn","music.migu.cn","+.wotgame.cn","+.wggames.cn","+.wowsgame.cn","+.wargaming.net","*.*.*.srv.nintendo.net","*.*.stun.playstation.net","xbox.*.*.microsoft.com","*.*.xboxlive.com","*.ipv6.microsoft.com","teredo.*.*.*","teredo.*.*","speedtest.cros.wr.pvp.net","+.jjvip8.com","www.douyu.com","activityapi.huya.com","activityapi.huya.com.w.cdngslb.com","www.bilibili.com","api.bilibili.com","a.w.bilicdn1.com","+.apt-agent.com"],j={sniff:{TLS:{ports:[443,8443]},HTTP:{ports:[80,8080,8880]},QUIC:{ports:[443,8443]}},"override-destination":!1,enable:!0,"force-dns-mapping":!0,"skip-domain":["Mijia Cloud","dlg.io.mi.com","+.push.apple.com"]},Te=["nameserver-policy","proxy-server-nameserver-policy"]});function te(e,t){return{enable:e,stack:"gvisor",device:"mihomo","route-exclude-address":[t?null:"100.64.0.0/10",t?null:"fd7a:115c:a1e0::/48","192.168.0.0/16"].filter(u),"dns-hijack":["any:53"],mtu:1500}}var re=p(()=>{"use strict";f()});function ne({landing:e,lowCostNodes:t,countryNames:n,nonLandingNodes:i,regexFilter:s}){let l=n.map(d=>d+N),c=t.length>0||s,C=S(o.AUTO,o.FALLBACK,e&&o.LANDING,l,c&&o.LOW_COST,o.MANUAL,"DIRECT"),h=S(o.SELECT,e&&o.LANDING,l,c&&o.LOW_COST,o.MANUAL,"DIRECT"),a=S("DIRECT",e&&o.LANDING,l,c&&o.LOW_COST,o.SELECT,o.MANUAL),T=S(e&&o.LANDING,l),y=S(l,"DIRECT",!s&&i.map(d=>d.name).filter(Boolean));return{defaultProxies:h,defaultProxiesDirect:a,defaultSelector:C,defaultFallback:T,frontProxySelector:y}}var ie=p(()=>{"use strict";I();f()});var _e=pe(()=>{I();U();k();z();W();Y();oe();re();ie();var Ce={geoip:`${r}/gh/MetaCubeX/meta-rules-dat@release/geoip.dat`,geosite:`${r}/gh/MetaCubeX/meta-rules-dat@release/geosite.dat`,mmdb:`${r}/gh/MetaCubeX/meta-rules-dat@release/country.mmdb`,asn:`${r}/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb`};function he(){try{return $arguments}catch{return{}}}var Se=he(),{groupType:ye,ipv6Enabled:se,fullConfig:Ae,keepAliveEnabled:be,fakeIPEnabled:xe,quicEnabled:Re,regexFilter:ae,tunEnabled:Oe,countryThreshold:Ne}=K(Se);function Le(e){if(!e.proxies||!Array.isArray(e.proxies))throw new Error("[powerfullz 的覆写脚本] 错误：Clash 配置中缺少有效的 proxies 字段");let{landingNodes:t,nonLandingNodes:n}=M(e.proxies),i=t.length>0&&n.length>0,s=Q(i?n:e.proxies),l=B(i?n:e.proxies),c=H(s,Ne),C=e.proxies.map(O=>O.name),h=F(e.proxies),a=h.length>0,{defaultProxies:T,defaultProxiesDirect:y,defaultSelector:d,defaultFallback:_,frontProxySelector:R}=ne({landing:i,lowCostNodes:l,countryNames:c,nonLandingNodes:n,regexFilter:ae}),A=w({allNodes:C,regexFilter:ae,groupType:ye,countryNames:c,countryNodes:s,lowCostNodes:l,tailscaleNodes:h,landing:i,landingNodes:t,defaultProxies:T,defaultProxiesDirect:y,defaultSelector:d,defaultFallback:_,frontProxySelector:R}),$=A.map(O=>String(O.name));A.push({name:o.GLOBAL,icon:`${r}/gh/Koolson/Qure@master/IconSet/Color/Global.png`,"include-all":!0,type:"select",proxies:$});let P=q({quicEnabled:Re},a);return{proxies:e.proxies,...e.hosts!==void 0&&{hosts:e.hosts},...Ae&&{"mixed-port":7890,"redir-port":7892,"tproxy-port":7893,"routing-mark":7894,"allow-lan":!0,"bind-address":"*",ipv6:se,mode:"rule","unified-delay":!0,"tcp-concurrent":!0,"find-process-mode":"off","log-level":"info","geodata-loader":"standard","external-controller":":9999","disable-keep-alive":!be,profile:{"store-selected":!0}},"proxy-groups":A,"rule-providers":X,rules:P,sniffer:j,dns:ee({fakeIPEnabled:xe,ipv6Enabled:se,upstreamDns:e.dns}),tun:te(Oe,a),"geodata-mode":!0,"geox-url":Ce}}globalThis.POWERFULLZ_MAIN=Le});_e();})();
+
+
+// ============================================================================
+// 3) 本人定制：入口 main(config)
+// ============================================================================
 function main(config) {
-  // ============ 0) pximg 专用出口（运行时探测，不硬编码）============
-  // 背景：pximg.net 是 pixiv / fanbox 的图片域名。部分机场出口 IP 段被它的 CDN
-  //       拉黑，症状是 TCP 能建连、上行发出去了但下行 0 字节 —— 页面骨架能开、
-  //       图片全部超时（fanbox「打不开」的真相）。
-  // 所以：不能挂在按通用 URL 测速的「自动选择」上；也不能硬编码节点名，
-  //       订阅换名会让 proxy not found 导致整份配置加载失败。
-  // 做法：先看当前订阅里到底有哪些节点，只有命中的才放进 url-test 组；
-  //       一个都没命中就整段跳过，规则也不加，保持订阅原样。
+  // --- 3.1 先把 config 交给 powerfullz 脚本转换 ---
+  // 内联时已把它的入口从 globalThis.main 改名为 POWERFULLZ_MAIN，避免覆盖本函数
+  config = globalThis.POWERFULLZ_MAIN(config);
+
+  // ============ 3.1.5) pximg 专用出口 ============
+  // 必须放在 POWERFULLZ_MAIN 之后：要基于它生成的 proxies / proxy-groups 探测节点名。
+  // pximg.net 是 pixiv / fanbox 的图片域。部分机场出口 IP 段被它的 CDN 拉黑，
+  // 表现是 TCP 能建连、上行发出去了但下行 0 字节 —— 页面骨架能开、图片全部超时。
+  // 所以不能挂在按通用 URL 测速的组上，也不能硬编码节点名（订阅换名会 proxy not found）。
   var PXIMG_CANDIDATES = [
     '🇹🇼台湾',
     '🇭🇰香港家宽专线',
     '🇭🇰香港HKBN',
     '🇭🇰香港HKBN2'
   ];
-  var available = {};
-  (config.proxies || []).forEach(function (p) { if (p && p.name) available[p.name] = true; });
-  (config['proxy-groups'] || []).forEach(function (g) { if (g && g.name) available[g.name] = true; });
-  var pximgMembers = PXIMG_CANDIDATES.filter(function (n) { return available[n]; });
+  var pximgAvailable = {};
+  (config.proxies || []).forEach(function (p) { if (p && p.name) pximgAvailable[p.name] = true; });
+  (config['proxy-groups'] || []).forEach(function (g) { if (g && g.name) pximgAvailable[g.name] = true; });
+  var pximgMembers = PXIMG_CANDIDATES.filter(function (n) { return pximgAvailable[n]; });
 
   if (pximgMembers.length > 0) {
-    // url-test 的探测 URL 直指 pximg 自己，组内只放能通的出口，
+    // 探测 URL 直指 pximg 自己，组内只放能通的出口，
     // 于是它永远只在可用节点里挑最快的，不会漂到被拉黑的段。
     config['proxy-groups'] = [{
       name: 'pximg',
@@ -32,10 +99,8 @@ function main(config) {
     }].concat(config['proxy-groups'] || []);
   }
 
-  // ============ 1) 规则：整块插到订阅规则之前（顺序即优先级）============
-  // 注：Party 的 `+rules` 语义就是"插到订阅 rules 之前"，
-  //     所以"兜底规则务必放最后"= 放在下面这个数组的最后。
-  var headRules = [
+  // ============ 3.2 规则：整块插到订阅规则之前（顺序即优先级）============
+  var myRules = [
     // ---- 直连 ----
     'DOMAIN-SUFFIX,2go2.top,DIRECT',
     'DOMAIN-SUFFIX,adblockplus.dev,DIRECT',
@@ -44,18 +109,8 @@ function main(config) {
     'DOMAIN-SUFFIX,wdpsmc.cn,DIRECT',
     'DOMAIN-SUFFIX,wenku8.net,DIRECT',
     'DOMAIN-SUFFIX,wenku8.com,DIRECT',
-    // 注：PROCESS-NAME 在 Android 上永远匹配不到 —— 手机端进程是包名，
-    //     不是 QQ.exe 这种可执行文件名。留着无害，但别指望它生效。
     'PROCESS-NAME,QQ.exe,DIRECT',
-    'PROCESS-NAME,TeamSpeak.exe,DIRECT'
-  ];
-
-  // pixiv / fanbox 图片域：走上面的 pximg 组（仅在组真的建起来时才加）
-  if (pximgMembers.length > 0) {
-    headRules.push('DOMAIN-SUFFIX,pximg.net,pximg');
-  }
-
-  var tailRules = [
+    'PROCESS-NAME,TeamSpeak.exe,DIRECT',
     // ---- 屏蔽 ----
     'DOMAIN-SUFFIX,adobe.com,REJECT',
     'DOMAIN-SUFFIX,adobe.io,REJECT',
@@ -66,49 +121,53 @@ function main(config) {
     // ---- 兜底（务必留在本块最后）----
     'IP-CIDR6,240e::/16,DIRECT',
     'IP-CIDR6,2408::/16,DIRECT',
-    'IP-CIDR6,2409::/16,DIRECT'
+    'IP-CIDR6,2409::/16,DIRECT',
+    // GEOIP,CN,DIRECT 要压在本块最末：它必须早于 powerfullz 的 MATCH,Final，
+    // 但晚于上面的 IP-CIDR6（IP 类规则先于 GEOIP 更精确）。
+    // powerfullz 自己也会生成一条 GEOIP,cn,DIRECT（在 MATCH 前），我这条在它之前生效。
+    'GEOIP,CN,DIRECT'
   ];
+  // pixiv / fanbox 图片域走上面的 pximg 组（仅在组真的建起来时才加规则）
+  if (pximgMembers.length > 0) {
+    myRules.unshift('DOMAIN-SUFFIX,pximg.net,pximg');
+  }
 
-  config.rules = headRules.concat(tailRules).concat(config.rules || []);
+  config.rules = myRules.concat(config.rules || []);
 
-  // ============ 2) 内核项（别让客户端默认值顶掉）============
+  // ============ 3.3 内核项（别让客户端默认值顶掉）============
   config.ipv6 = false;
   config['tcp-concurrent'] = true;
   config['find-process-mode'] = 'off';
 
-  // ============ 3) DNS ============
+  // ============ 3.4 DNS：下列键整体替换 ============
+  // 本段在 powerfullz 之后执行，同名字段一律以本文件为准（你的脚本优先）
   var dns = config.dns || {};
-
-  // 3.1 明确 fake-ip：域名交给代理端解析，本地 DNS 不再决定"连到哪个 IP"。
-  //     这是后面能放心干掉 fallback 的前提 —— 本地解析结果只用于分流判定。
+  // 强制 fake-ip：域名交给代理端解析，本地 DNS 只负责分流判定。
+  // 这是删掉 fallback 的前提 —— 只有在这个模式下，本地解析结果才不决定连到哪个 IP。
   dns['enhanced-mode'] = 'fake-ip';
 
-  // 3.2 只用加密上游。删掉明文 223.5.5.5：UDP 53 明文对境外域名是污染入口。
+  // 只用加密上游。去掉明文 223.5.5.5：UDP 53 明文对境外域名是污染入口。
   dns.nameserver = [
     'https://doh.pub/dns-query',
     'https://dns.alidns.com/dns-query',
     'tls://dot.pub:853'
   ];
-
-  // 3.3 default-nameserver 必须是纯 IP（用来解析上面那几个 DoH/DoT 自己的域名），
-  //     这一层的明文是协议限制，躲不掉，只能限定用途。
   dns['default-nameserver'] = ['223.5.5.5', '119.29.29.29'];
 
-  // 3.4 干掉 fallback 及 fallback-filter。
-  //     只要配了 fallback，mihomo 就默认启用 fallback-filter（geoip-code=CN），
-  //     把一切非中国 IP 的结果判为污染，转去问境外明文 DNS。
-  //     在 fake-ip 下这毫无必要，纯属给每个境外域名多加一次往返。
+  // 彻底清掉 fallback / fallback-filter。
+  // 注意：powerfullz 也会注入 fallback，而数组是追加语义，光删自己那份不够，
+  // 必须在这里 delete 才真正生效。配了 fallback 就等于默认启用 fallback-filter
+  // (geoip-code=CN)，把一切非中国 IP 判为污染再去问一次境外明文 DNS，纯属浪费。
   delete dns.fallback;
   delete dns['fallback-filter'];
 
-  // 3.5 节点域名单独指定解析源，避免被任何策略带偏导致节点连不上。
+  // 节点域名单独指定解析源，避免被任何策略带偏导致节点连不上。
   dns['proxy-server-nameserver'] = [
     'https://doh.pub/dns-query',
     'https://dns.alidns.com/dns-query'
   ];
 
   dns.ipv6 = false;
-
   dns['nameserver-policy'] = {
     '+.google.com': 'https://doh.pub/dns-query',
     '+.googleapis.com': 'https://doh.pub/dns-query',
@@ -126,10 +185,8 @@ function main(config) {
     '+.chatgpt.com': 'https://doh.pub/dns-query',
     '+.anthropic.com': 'https://doh.pub/dns-query'
   };
-
-  // 追加语义：在订阅原有 fake-ip-filter 基础上加
+  // 追加语义：在原有 fake-ip-filter 基础上加
   dns['fake-ip-filter'] = (dns['fake-ip-filter'] || []).concat(['wdpsmc.cn', '*.wdpsmc.cn']);
-
   config.dns = dns;
 
   return config;
