@@ -7,7 +7,7 @@
   - DOMAIN-SUFFIX,wdpsmc.cn,DIRECT
   - DOMAIN-SUFFIX,wenku8.net,DIRECT
   - DOMAIN-SUFFIX,wenku8.com,DIRECT
-  - DOMAIN-SUFFIX,pximg.net,DIRECT
+  - DOMAIN-SUFFIX,pximg.net,一分机场
 
   # ============ 屏蔽 REJECT ============
   # Adobe 全家桶
@@ -82,23 +82,5 @@ dns:
     - 223.5.5.5
   # 删掉插件默认写入的 fallback / fallback-filter（值为空即整键删除）
   fallback-:
-  # nameserver-policy 是哈希递归合并，只补新增项，已有条目不会被覆盖
-  nameserver-policy:
-    +.google.com: https://doh.pub/dns-query
-    +.googleapis.com: https://doh.pub/dns-query
-    +.googleapis.cn: https://doh.pub/dns-query
-    +.googlevideo.com: https://doh.pub/dns-query
-    +.gstatic.com: https://doh.pub/dns-query
-    +.youtube.com: https://doh.pub/dns-query
-    +.youtu.be: https://doh.pub/dns-query
-    +.facebook.com: https://doh.pub/dns-query
-    +.twitter.com: https://doh.pub/dns-query
-    +.x.com: https://doh.pub/dns-query
-    +.github.com: https://doh.pub/dns-query
-    +.githubusercontent.com: https://doh.pub/dns-query
-    +.openai.com: https://doh.pub/dns-query
-    +.chatgpt.com: https://doh.pub/dns-query
-    +.anthropic.com: https://doh.pub/dns-query
-  # 必须带 + 前缀：不带会整体替换 fake-ip-filter，清掉插件内置的 140 多条
   +fake-ip-filter:
     - +.wdpsmc.cn
