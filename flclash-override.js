@@ -70,6 +70,10 @@ function main(config) {
   // 内联时已把它的入口从 globalThis.main 改名为 POWERFULLZ_MAIN，避免覆盖本函数
   config = globalThis.POWERFULLZ_MAIN(config);
 
+  // 只改指向，不动内联代码
+  var rp = config['rule-providers'] && config['rule-providers'].ADBlock;
+  if (rp) rp.url = 'https://cdn.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblockmihomo.yaml';
+  
   // ============ 3.1.5) pximg 专用出口 ============
   // 必须放在 POWERFULLZ_MAIN 之后：要基于它生成的 proxies / proxy-groups 探测节点名。
   // pximg.net 是 pixiv / fanbox 的图片域。部分机场出口 IP 段被它的 CDN 拉黑，
