@@ -1,3 +1,7 @@
+# 只改 url，type/behavior/format/interval/path 由递归合并保留
+rule-providers:
+  ADBlock:
+    url: https://cdn.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblockmihomo.yaml
 +proxy-groups:
   # pximg 专用自愈组：探测 URL 直指 i.pximg.net。
   # 不能用「自动选择」——它按通用 URL 测速，会漂到被 pximg CDN 拉黑的口岸（日本/新加坡）。
