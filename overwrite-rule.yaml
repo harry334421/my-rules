@@ -16,6 +16,24 @@ rule-providers:
       - 🇭🇰香港HKBN
       - 🇭🇰香港HKBN2
 +rules:
+  # Nexon / MapleStory（必须最优先，靠 +rules 前置生效）
+  # 账号是 North America / GMS Classic：DIRECT（中国 IP）→ forbidden 黑屏；日本节点 → 锁区
+  - DOMAIN-SUFFIX,nexon.com,美国节点
+  - DOMAIN-SUFFIX,nexon.net,美国节点
+  - DOMAIN-SUFFIX,nexon.io,美国节点
+  - DOMAIN-SUFFIX,nexoncdn.com,美国节点
+  - DOMAIN-SUFFIX,nexonstatic.com,美国节点
+  - DOMAIN-SUFFIX,maplestory.com,美国节点
+  - DOMAIN-SUFFIX,maplestory.net,美国节点
+  - DOMAIN-SUFFIX,maplestoryworlds.com,美国节点
+  # 游戏本体 + 反作弊进程 DIRECT（不代理，交给 UU）
+  - PROCESS-NAME,MapleStory.exe,DIRECT
+  - PROCESS-NAME,MapleStory_Classic.exe,DIRECT
+  - PROCESS-NAME,Launcher.dat,DIRECT
+  - PROCESS-NAME,BlackCipher.exe,DIRECT
+  - PROCESS-NAME,BlackCipher64.exe,DIRECT
+  - PROCESS-NAME,NexonSecurity.exe,DIRECT
+
   # ============ 直连 DIRECT ============
   - DOMAIN-SUFFIX,2go2.top,DIRECT
   - DOMAIN-SUFFIX,adblockplus.dev,DIRECT
