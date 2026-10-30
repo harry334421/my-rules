@@ -15,6 +15,22 @@ rule-providers:
       - 🇭🇰香港家宽专线
       - 🇭🇰香港HKBN
       - 🇭🇰香港HKBN2
+  # Twitch 直播负载均衡组。
+  # 单个节点对单条 TCP 限速约 2.5 Mbps，而 720p 档位就要 2.55 Mbps，卡在临界线上；
+  # 同批分片多连接并发可达 11+ Mbps，说明总带宽够、瓶颈是单流 QoS。
+  # round-robin 让不同分片落到不同节点，把多个节点的单流带宽叠加。
+  # 探测 URL 必须返回 200：usher.ttvnw.net 裸 GET 是 403，会让整组被判不健康而失效。
+  # 不要用 include-all + filter：filter 的正则要写 `|`，而 OpenClash 生成配置时走 shell eval，
+  # `|` 会被当管道吃掉，导致 filter 整键丢失、include-all 把全部节点（含美国）都拉进来。
+  - name: Twitch
+    type: load-balance
+    url: https://static.twitchcdn.net/config/settings.js
+    interval: 300
+    tolerance: 50
+    strategy: round-robin
+    proxies:
+      - 🇭🇰香港HKBN
+      - 🇭🇰香港HKBN2
 +rules:
   # Nexon / MapleStory（必须最优先，靠 +rules 前置生效）
   # 账号是 North America / GMS Classic：DIRECT（中国 IP）→ forbidden 黑屏；日本节点 → 锁区
@@ -26,6 +42,14 @@ rule-providers:
   - DOMAIN-SUFFIX,maplestory.com,美国节点
   - DOMAIN-SUFFIX,maplestory.net,美国节点
   - DOMAIN-SUFFIX,maplestoryworlds.com,美国节点
+  # ---- Twitch 直播（走上面的 Twitch 负载均衡组）----
+  # ttvnw.net 覆盖 usher / video-edge / apn11.playlist 等全部取流域名。
+  - DOMAIN-SUFFIX,twitch.tv,Twitch
+  - DOMAIN-SUFFIX,ttvnw.net,Twitch
+  - DOMAIN-SUFFIX,twitchcdn.net,Twitch
+  - DOMAIN-SUFFIX,jtvnw.net,Twitch
+  - DOMAIN-SUFFIX,twitchsvc.net,Twitch
+  - DOMAIN-SUFFIX,ext-twitch.tv,Twitch
   # 游戏本体 + 反作弊进程 DIRECT（不代理，交给 UU）
   - PROCESS-NAME,MapleStory.exe,DIRECT
   - PROCESS-NAME,MapleStory_Classic.exe,DIRECT
