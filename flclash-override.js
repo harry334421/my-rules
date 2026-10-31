@@ -103,6 +103,42 @@ function main(config) {
     }].concat(config['proxy-groups'] || []);
   }
 
+  // ============ 3.1.6) Twitch 双香港负载均衡组 ============
+  // powerfullz 生成的是 type:"select" 手动组，而且 grouptype 参数管不到它（它不走 v()）。
+  // 这里在它之后把同名组整个换掉：两个香港出口轮询，单个节点抖动时分片换条腿走，
+  // 直播断流恢复得快一些。探测 URL 必须用会返回 200 的地址：
+  // usher.ttvnw.net 裸 GET 是 403，会让整组被判不健康。
+  // 成员按名字探测，订阅换名就自动跳过，不会 proxy not found。
+  var TWITCH_CANDIDATES = ['🇭🇰香港HKBN', '🇭🇰香港HKBN2'];
+  var nodeNames = {};
+  (config.proxies || []).forEach(function (p) { if (p && p.name) nodeNames[p.name] = true; });
+  var twitchMembers = TWITCH_CANDIDATES.filter(function (n) { return nodeNames[n]; });
+  if (twitchMembers.length < 2) {
+    // 换机场后名字对不上时退化：取名字里带香港/HK 的节点，最多 4 个。
+    var hkFallback = Object.keys(nodeNames).filter(function (n) {
+      return /香港|HKBN|\bHK\b/i.test(n);
+    });
+    if (hkFallback.length > twitchMembers.length) twitchMembers = hkFallback.slice(0, 4);
+  }
+  if (twitchMembers.length > 0) {
+    var twitchGroup = {
+      name: 'Twitch',
+      type: 'load-balance',
+      strategy: 'round-robin',
+      url: 'https://static.twitchcdn.net/config/settings.js',
+      interval: 300,
+      tolerance: 50,
+      proxies: twitchMembers
+    };
+    var groups = config['proxy-groups'] || [];
+    var twitchReplaced = false;
+    for (var gi = 0; gi < groups.length; gi++) {
+      if (groups[gi] && groups[gi].name === 'Twitch') { groups[gi] = twitchGroup; twitchReplaced = true; break; }
+    }
+    if (!twitchReplaced) groups = [twitchGroup].concat(groups);
+    config['proxy-groups'] = groups;
+  }
+
   // ============ 3.2 规则：整块插到订阅规则之前（顺序即优先级）============
   var myRules = [
     // ---- 直连 ----
@@ -177,6 +213,18 @@ function main(config) {
   // pixiv / fanbox 图片域走上面的 pximg 组（仅在组真的建起来时才加规则）
   if (pximgMembers.length > 0) {
     myRules.unshift('DOMAIN-SUFFIX,pximg.net,pximg');
+  }
+  // Twitch 六个域名显式指向上面的负载均衡组，压过 powerfullz 的 GEOSITE,twitch。
+  // ttvnw.net 一条覆盖 usher / video-edge / apn11.playlist 全部取流域名。
+  if (twitchMembers.length > 0) {
+    myRules = [
+      'DOMAIN-SUFFIX,twitch.tv,Twitch',
+      'DOMAIN-SUFFIX,ttvnw.net,Twitch',
+      'DOMAIN-SUFFIX,twitchcdn.net,Twitch',
+      'DOMAIN-SUFFIX,jtvnw.net,Twitch',
+      'DOMAIN-SUFFIX,twitchsvc.net,Twitch',
+      'DOMAIN-SUFFIX,ext-twitch.tv,Twitch'
+    ].concat(myRules);
   }
 
   config.rules = myRules.concat(config.rules || []);
