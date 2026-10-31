@@ -83,7 +83,9 @@ function main(config) {
     '🇹🇼台湾',
     '🇭🇰香港家宽专线',
     '🇭🇰香港HKBN',
-    '🇭🇰香港HKBN2'
+    '🇭🇰香港HKBN2',
+    '🇯🇵AWS日本4号',
+    '🇺🇸美国1号-0.1倍率'
   ];
   var pximgAvailable = {};
   (config.proxies || []).forEach(function (p) { if (p && p.name) pximgAvailable[p.name] = true; });

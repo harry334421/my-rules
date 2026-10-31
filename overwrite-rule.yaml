@@ -5,6 +5,8 @@ rule-providers:
 +proxy-groups:
   # pximg 专用自愈组：探测 URL 直指 i.pximg.net。
   # 不能用「自动选择」——它按通用 URL 测速，会漂到被 pximg CDN 拉黑的口岸（日本/新加坡）。
+  # 2026-11-01 实测：香港三个点全挂、台湾超时，日本家宽 Vless（日本1-6号）同样被拒（504），
+  # 但 AWS日本4号 196ms、美国1号 323ms 可通，故补入这两个兜底出口。
   - name: pximg
     type: url-test
     url: https://i.pximg.net/
@@ -15,6 +17,8 @@ rule-providers:
       - 🇭🇰香港家宽专线
       - 🇭🇰香港HKBN
       - 🇭🇰香港HKBN2
+      - 🇯🇵AWS日本4号
+      - 🇺🇸美国1号-0.1倍率
   # Twitch 直播负载均衡组。
   # 单个节点对单条 TCP 限速约 2.5 Mbps，而 720p 档位就要 2.55 Mbps，卡在临界线上；
   # 同批分片多连接并发可达 11+ Mbps，说明总带宽够、瓶颈是单流 QoS。
