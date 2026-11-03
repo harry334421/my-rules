@@ -24,17 +24,20 @@ rule-providers:
   # 同批分片多连接并发可达 11+ Mbps，说明总带宽够、瓶颈是单流 QoS。
   # round-robin 让不同分片落到不同节点，把多个节点的单流带宽叠加。
   # 探测 URL 必须返回 200：usher.ttvnw.net 裸 GET 是 403，会让整组被判不健康而失效。
-  # 不要用 include-all + filter：filter 的正则要写 `|`，而 OpenClash 生成配置时走 shell eval，
-  # `|` 会被当管道吃掉，导致 filter 整键丢失、include-all 把全部节点（含美国）都拉进来。
+  #
+  # 成员用 include-all + filter 动态筛，不写死节点名：
+  # 写死的话换机场或订阅改名后整组变空，而下面六条规则仍然指着它，Twitch 直接断。
+  # filter 的值刻意不含竖线 —— OpenClash 生成配置时走 shell eval，`|` 会被当管道吃掉，
+  # 导致 filter 整键丢失、include-all 反把全部节点（含美国）拉进来。
+  # 节点名不含「香港」二字时（例如 HK-01），把下面这行改成 HK，同样别带竖线。
+  # 关键词与 flclash-override.js 的 TWITCH_KEYWORDS 保持一致，改一处要同步另一处。
   - name: Twitch-LB
     type: load-balance
     url: https://static.twitchcdn.net/config/settings.js
     interval: 300
-    tolerance: 50
     strategy: round-robin
-    proxies:
-      - 🇭🇰香港HKBN
-      - 🇭🇰香港HKBN2
+    include-all: true
+    filter: "香港"
 +rules:
   # Nexon / MapleStory（必须最优先，靠 +rules 前置生效）
   # 账号是 North America / GMS Classic：DIRECT（中国 IP）→ forbidden 黑屏；日本节点 → 锁区

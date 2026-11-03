@@ -105,23 +105,36 @@ function main(config) {
     }].concat(config['proxy-groups'] || []);
   }
 
-  // ============ 3.1.6) Twitch 双香港负载均衡组 ============
+  // ============ 3.1.6) Twitch 香港负载均衡组 ============
   // powerfullz 生成的是 type:"select" 手动组，而且 grouptype 参数管不到它（它不走 v()）。
-  // 这里在它之后把同名组整个换掉：两个香港出口轮询，单个节点抖动时分片换条腿走，
+  // 这里在它之后把同名组整个换掉：多个香港出口轮询，单个节点抖动时分片换条腿走，
   // 直播断流恢复得快一些。探测 URL 必须用会返回 200 的地址：
   // usher.ttvnw.net 裸 GET 是 403，会让整组被判不健康。
-  // 成员按名字探测，订阅换名就自动跳过，不会 proxy not found。
-  var TWITCH_CANDIDATES = ['🇭🇰香港HKBN', '🇭🇰香港HKBN2'];
-  var nodeNames = {};
-  (config.proxies || []).forEach(function (p) { if (p && p.name) nodeNames[p.name] = true; });
-  var twitchMembers = TWITCH_CANDIDATES.filter(function (n) { return nodeNames[n]; });
-  if (twitchMembers.length < 2) {
-    // 换机场后名字对不上时退化：取名字里带香港/HK 的节点，最多 4 个。
-    var hkFallback = Object.keys(nodeNames).filter(function (n) {
-      return /香港|HKBN|\bHK\b/i.test(n);
+  //
+  // 成员不写死节点名：订阅改名或换机场后硬编码会全部对不上，整组变空，
+  // 而下面六条规则仍然指着它 —— 流量会退回 convert 那个首项是 DIRECT 的 select 组，
+  // 症状是「突然很卡」而不是任何报错。所以按名字里的地区词动态收集。
+  // 关键词与 overwrite-rule.yaml 的 filter 保持一致，改一处要同步另一处。
+  var TWITCH_KEYWORDS = ['香港', 'HKBN'];
+  var TWITCH_SPARE_GROUP = '自动选择'; // convert 硬编码必生成，最后兜底用
+
+  var twitchMembers = (config.proxies || []).filter(function (p) {
+    if (!p || !p.name) return false;
+    for (var k = 0; k < TWITCH_KEYWORDS.length; k++) {
+      if (p.name.indexOf(TWITCH_KEYWORDS[k]) !== -1) return true;
+    }
+    return false;
+  }).map(function (p) { return p.name; });
+
+  if (twitchMembers.length === 0) {
+    // 一个都没筛到时不建空组：挂「自动选择」，至少规则不会打空。
+    var groupNames = {};
+    (config['proxy-groups'] || []).forEach(function (g) {
+      if (g && g.name) groupNames[g.name] = true;
     });
-    if (hkFallback.length > twitchMembers.length) twitchMembers = hkFallback.slice(0, 4);
+    if (groupNames[TWITCH_SPARE_GROUP]) twitchMembers = [TWITCH_SPARE_GROUP];
   }
+
   if (twitchMembers.length > 0) {
     var twitchGroup = {
       name: 'Twitch',
@@ -129,7 +142,6 @@ function main(config) {
       strategy: 'round-robin',
       url: 'https://static.twitchcdn.net/config/settings.js',
       interval: 300,
-      tolerance: 50,
       proxies: twitchMembers
     };
     var groups = config['proxy-groups'] || [];
