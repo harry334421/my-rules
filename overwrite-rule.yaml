@@ -26,7 +26,7 @@ rule-providers:
   # 探测 URL 必须返回 200：usher.ttvnw.net 裸 GET 是 403，会让整组被判不健康而失效。
   # 不要用 include-all + filter：filter 的正则要写 `|`，而 OpenClash 生成配置时走 shell eval，
   # `|` 会被当管道吃掉，导致 filter 整键丢失、include-all 把全部节点（含美国）都拉进来。
-  - name: Twitch
+  - name: Twitch-LB
     type: load-balance
     url: https://static.twitchcdn.net/config/settings.js
     interval: 300
@@ -48,12 +48,12 @@ rule-providers:
   - DOMAIN-SUFFIX,maplestoryworlds.com,美国节点
   # ---- Twitch 直播（走上面的 Twitch 负载均衡组）----
   # ttvnw.net 覆盖 usher / video-edge / apn11.playlist 等全部取流域名。
-  - DOMAIN-SUFFIX,twitch.tv,Twitch
-  - DOMAIN-SUFFIX,ttvnw.net,Twitch
-  - DOMAIN-SUFFIX,twitchcdn.net,Twitch
-  - DOMAIN-SUFFIX,jtvnw.net,Twitch
-  - DOMAIN-SUFFIX,twitchsvc.net,Twitch
-  - DOMAIN-SUFFIX,ext-twitch.tv,Twitch
+  - DOMAIN-SUFFIX,twitch.tv,Twitch-LB
+  - DOMAIN-SUFFIX,ttvnw.net,Twitch-LB
+  - DOMAIN-SUFFIX,twitchcdn.net,Twitch-LB
+  - DOMAIN-SUFFIX,jtvnw.net,Twitch-LB
+  - DOMAIN-SUFFIX,twitchsvc.net,Twitch-LB
+  - DOMAIN-SUFFIX,ext-twitch.tv,Twitch-LB
   # 游戏本体 + 反作弊进程 DIRECT（不代理，交给 UU）
   - PROCESS-NAME,MapleStory.exe,DIRECT
   - PROCESS-NAME,MapleStory_Classic.exe,DIRECT
