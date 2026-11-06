@@ -102,6 +102,7 @@ rule-providers:
   - DOMAIN-SUFFIX,xycdn.com,REJECT
   # 视频平台
   - DOMAIN-SUFFIX,mcdn.bilivideo.cn,REJECT
+  - DOMAIN-SUFFIX,mcdn.bilivideo.com,REJECT
   - DOMAIN-SUFFIX,onethingpcs.com,REJECT
   - DOMAIN-SUFFIX,pcdn.xmcdn.com,REJECT
   - DOMAIN-SUFFIX,tpa-hcdn.iqiyi.com,REJECT
@@ -147,7 +148,20 @@ dns:
   proxy-server-nameserver:
     - https://doh.pub/dns-query
     - 223.5.5.5
-  # 删掉插件默认写入的 fallback / fallback-filter（值为空即整键删除）
-  fallback-:
+  # 2026-11-07: 补回 fallback。此前只有 fallback-filter 没有 fallback 列表，
+  # 过滤器形同虚设，被墙域名也走国内 DoH 而被投毒（doh.pub 对 hitomi.la
+  # 返回过 173.252.108.3 这个 Facebook 段地址）。#一分机场 表示经该代理组查询，
+  # 实测 dns.google / 1.1.1.1 的 DoH 直连被封、经代理可正常返回真实 IP。
+  fallback:
+    - https://1.1.1.1/dns-query#一分机场
+    - https://dns.google/dns-query#一分机场
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    geosite:
+      - gfw
+  # 删除主配置里把 google/youtube/github/openai 指向国内 DoH 的 policy，
+  # 改由上面的 fallback-filter 统一判定
+  nameserver-policy-:
   +fake-ip-filter:
     - +.wdpsmc.cn
